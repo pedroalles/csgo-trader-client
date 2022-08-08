@@ -8,6 +8,6 @@ describe("AppShell", () => {
                 colorScheme='dark'
                 toggleColorScheme={() => { }}
             />);
-        expect(queryAllByText('Olá')).toHaveLength(1);
+        expect(queryAllByText('Home')).toHaveLength(2);
     })
 })

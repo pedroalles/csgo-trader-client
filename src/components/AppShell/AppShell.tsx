@@ -1,7 +1,7 @@
 import React from 'react'
-
 import { AppShell as AppShellMantine, ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
-import useToggleColorScheme from '../../hooks/useToggleColorScheme';
+import { Header } from '../Header';
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 type AppShellProps = {
     colorScheme: 'dark' | "light",
@@ -11,19 +11,38 @@ type AppShellProps = {
 export const AppShell = ({ colorScheme, toggleColorScheme }: AppShellProps) => {
 
     return (
-        <ColorSchemeProvider
-            colorScheme={colorScheme}
-            toggleColorScheme={toggleColorScheme}
-        >
-            <MantineProvider
-                theme={{ colorScheme }}
-                withGlobalStyles
-                withNormalizeCSS
+        <BrowserRouter>
+            <ColorSchemeProvider
+                colorScheme={colorScheme}
+                toggleColorScheme={toggleColorScheme}
             >
-                <AppShellMantine>
-                    <h1>Olá</h1>
-                </AppShellMantine>
-            </MantineProvider>
-        </ColorSchemeProvider>
+                <MantineProvider
+                    theme={{ colorScheme }}
+                    withGlobalStyles
+                    withNormalizeCSS
+                >
+                    <AppShellMantine
+                        header={
+                            <Header
+                                title='My App'
+                                links={[
+                                    {
+                                        link: '/',
+                                        label: 'Home'
+                                    },
+                                    {
+                                        link: '/about',
+                                        label: 'About'
+                                    }]}
+                            />}
+                    >
+                        <Routes>
+                            <Route path='/' element={<h1>Home</h1>} />
+                            <Route path='/about' element={<h1>About</h1>} />
+                        </Routes>
+                    </AppShellMantine>
+                </MantineProvider>
+            </ColorSchemeProvider>
+        </BrowserRouter>
     )
 }
