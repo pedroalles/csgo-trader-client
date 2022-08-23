@@ -1,17 +1,18 @@
-import React from 'react'
-import { AppShell } from './components/AppShell';
-import { MantineProvider, ColorSchemeProvider } from '@mantine/core';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import useToggleColorScheme from './hooks/useToggleColorScheme';
+import { AppShell } from "./components/AppShell";
+import Home from "./pages/Home";
 
 export default function App() {
-
-  const { colorScheme, toggleColorScheme } = useToggleColorScheme()
-
   return (
-    <AppShell
-      colorScheme={colorScheme}
-      toggleColorScheme={toggleColorScheme}
-    />
+    <BrowserRouter>
+      <AppShell>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          {/* <Route path="/about" element={<h1>About</h1>} /> */}
+        </Routes>
+      </AppShell>
+    </BrowserRouter>
   );
 }

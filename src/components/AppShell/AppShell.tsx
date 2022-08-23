@@ -1,48 +1,62 @@
-import React from 'react'
-import { AppShell as AppShellMantine, ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
-import { Header } from '../Header';
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import React, { ReactNode } from "react";
+import {
+  AppShell as AppShellMantine,
+  ColorScheme,
+  ColorSchemeProvider,
+  MantineProvider,
+} from "@mantine/core";
+import { useHotkeys, useLocalStorage } from "@mantine/hooks";
+import { Header } from "../Header";
 
 type AppShellProps = {
-    colorScheme: 'dark' | "light",
-    toggleColorScheme: (value?: ColorScheme | undefined) => void
-}
+  children: ReactNode;
+};
 
-export const AppShell = ({ colorScheme, toggleColorScheme }: AppShellProps) => {
+export const AppShell = ({ children }: AppShellProps) => {
+  const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
+    key: "mantine-color-scheme",
+    defaultValue: "light",
+    getInitialValueInEffect: true,
+  });
 
-    return (
-        <BrowserRouter>
-            <ColorSchemeProvider
-                colorScheme={colorScheme}
-                toggleColorScheme={toggleColorScheme}
-            >
-                <MantineProvider
-                    theme={{ colorScheme }}
-                    withGlobalStyles
-                    withNormalizeCSS
-                >
-                    <AppShellMantine
-                        header={
-                            <Header
-                                title='My App'
-                                links={[
-                                    {
-                                        link: '/',
-                                        label: 'Home'
-                                    },
-                                    {
-                                        link: '/about',
-                                        label: 'About'
-                                    }]}
-                            />}
-                    >
-                        <Routes>
-                            <Route path='/' element={<h1>Home</h1>} />
-                            <Route path='/about' element={<h1>About</h1>} />
-                        </Routes>
-                    </AppShellMantine>
-                </MantineProvider>
-            </ColorSchemeProvider>
-        </BrowserRouter>
-    )
-}
+  const toggleColorScheme = (value?: ColorScheme) =>
+    setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
+
+  useHotkeys([["mod+J", () => toggleColorScheme()]]);
+
+  return (
+    <ColorSchemeProvider
+      colorScheme={colorScheme}
+      toggleColorScheme={toggleColorScheme}
+    >
+      <MantineProvider
+        theme={{
+          colorScheme,
+          black: "#46514F",
+        }}
+        withGlobalStyles
+        withNormalizeCSS
+      >
+        <AppShellMantine
+          header={
+            <Header
+              title=""
+              links={[
+                {
+                  link: "/",
+                  label: "Home",
+                },
+                // {
+                //   link: "/about",
+                //   label: "About",
+                // },
+              ]}
+            />
+          }
+        >
+          {children}
+        </AppShellMantine>
+      </MantineProvider>
+    </ColorSchemeProvider>
+  );
+};
