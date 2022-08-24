@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 
 import {
   Container,
@@ -121,7 +121,7 @@ export default function Home() {
       }}
     >
       {data.map(({ type, data }, index) => (
-        <>
+        <Fragment key={type}>
           <Stack key={type} spacing="xs">
             <Title order={4}>{type}</Title>
 
@@ -134,7 +134,7 @@ export default function Home() {
           </Stack>
 
           {index < data.length - 1 && <Divider my="xs" variant="solid" />}
-        </>
+        </Fragment>
       ))}
     </Container>
   );

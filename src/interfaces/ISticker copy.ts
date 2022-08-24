@@ -23,15 +23,3 @@ export interface IOrder extends IStickerWithouValue {
 export interface IMonitoring extends IStickerWithouValue {
   buyValue: string;
 }
-
-export interface ISaleInfos {
-  quantity: string;
-  startingValue: string;
-  table: { value: string; quantity: string }[];
-}
-
-export interface IOrderInfos {
-  quantity: string;
-  startingValue: string;
-  table: { value: string; quantity: string }[];
-}

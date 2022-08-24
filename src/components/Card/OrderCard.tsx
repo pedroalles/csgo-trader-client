@@ -1,9 +1,23 @@
-import React, { useCallback } from "react";
+import React, { memo, useCallback } from "react";
 import { Card, Group, Image, Stack, Text } from "@mantine/core";
 import { Sticker } from "../../hooks/useAll";
 import IType from "../../interfaces/IType";
-import { IOrder } from "../../interfaces/ISticker";
+import { IOrder, IOrderInfos } from "../../interfaces/ISticker";
 import CardItem from "../CardItem/CardItem";
+import useSWR from "swr";
+import axios from "axios";
+import { SWR_STICKER_REFRESH } from "../../constants";
+import CardItemNum from "../CardItemNum/CardItem";
+
+const axiosFetcher = (url: string, body: any = {}) =>
+  axios
+    .get(url, {
+      params: body,
+    })
+    .then((r) => {
+      console.log("GETING ORDER", r.data);
+      return r.data;
+    });
 
 interface CardProps {
   data: {
@@ -12,31 +26,58 @@ interface CardProps {
   } & IOrder;
 }
 
-const marketPrice = ["R$ 2,00", "R$ 2,20", "R$ 1,98"];
+// const marketPrice = ["R$ 2,00", "R$ 2,20", "R$ 1,98"];
 
-export default function OrderCard({
-  data: { type, index, name, buyValue, quantity, link, image },
-}: CardProps) {
-  // console.log(`${image.split(" ")[0]}.jpg`);
+function OrderCard({ data }: CardProps) {
+  const body = {
+    url: data.link,
+  };
+  const url = "http://192.168.0.21:3001/order";
+  const { data: orderInfos, error } = useSWR<{
+    data: IOrderInfos;
+    time: string;
+  }>([url, body], axiosFetcher, {
+    revalidateOnFocus: false,
+    refreshInterval: SWR_STICKER_REFRESH,
+  });
 
-  const data: { label: string; value: string }[] = [
-    { label: "Order Price", value: buyValue },
-    { label: " Market Price", value: marketPrice[index] },
-  ];
+  const { type, index, name, buyValue, quantity, link, image } = data;
 
-  const items = useCallback(
-    () =>
-      data.map((item: { label: string; value: string }, index) => (
-        <CardItem
-          key={`card-item-${type}-${name}-${index}`}
-          data={{
-            label: item.label,
-            value: item.value,
-          }}
-        />
-      )),
-    [data]
-  );
+  const items = useCallback(() => {
+    const itemsData: { label: string; value: string }[] = [
+      { label: "Order Price", value: buyValue },
+      // { label: " Market Price", value: marketPrice[index] },
+    ];
+
+    return itemsData.map((item: { label: string; value: string }, index) => (
+      <CardItemNum
+        key={`card-item-${type}-${name}-${index}-${item.label}`}
+        data={{
+          label: item.label,
+          value: item.value,
+        }}
+      />
+    ));
+  }, [data]);
+
+  const orderInfosItems = useCallback(() => {
+    if (!orderInfos?.data) return;
+
+    const itemsData: { label: string; value: string }[] = [
+      { label: "Quantity", value: orderInfos?.data.quantity! },
+      { label: "Starting Price", value: orderInfos?.data.startingValue! },
+    ];
+
+    return itemsData.map((item: { label: string; value: string }, index) => (
+      <CardItemNum
+        key={`card-item-${type}-${name}-${index}-${item.label}`}
+        data={{
+          label: item.label,
+          value: item.value,
+        }}
+      />
+    ));
+  }, [orderInfos]);
 
   return (
     <Card key={index} component="a" href={link} target="_blank" withBorder>
@@ -58,22 +99,43 @@ export default function OrderCard({
             justifyContent: "space-between",
           }}
         >
-          {/* Name */}
-          <Stack spacing={1}>
-            <Text
-              style={{
-                fontWeight: 700,
-                fontSize: 16,
-                lineHeight: 1,
-              }}
-            >
-              {name}
-            </Text>
+          <Group position="apart">
+            {/* Name */}
+            <Stack spacing={1}>
+              <Text
+                style={{
+                  fontWeight: 700,
+                  fontSize: 16,
+                  lineHeight: 1,
+                }}
+              >
+                {name}
+              </Text>
 
-            <Text size="xs" color="dimmed">
-              Item Name
-            </Text>
-          </Stack>
+              <Text size="xs" color="dimmed">
+                Item Name
+              </Text>
+            </Stack>
+
+            {/* Update time */}
+            {orderInfos?.time && (
+              <Stack spacing={1}>
+                <Text
+                  style={{
+                    fontWeight: 500,
+                    fontSize: 10,
+                    lineHeight: 1,
+                  }}
+                >
+                  {orderInfos?.time}
+                </Text>
+
+                <Text size="xs" color="dimmed">
+                  Last Update
+                </Text>
+              </Stack>
+            )}
+          </Group>
 
           <Group
             // spacing="xs"
@@ -86,6 +148,7 @@ export default function OrderCard({
             }
           >
             {items()}
+            {orderInfosItems?.()}
           </Group>
         </Stack>
 
@@ -115,3 +178,5 @@ export default function OrderCard({
     </Card>
   );
 }
+
+export default OrderCard;

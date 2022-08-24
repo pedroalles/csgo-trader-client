@@ -1,62 +1,41 @@
 import React, { ReactNode } from "react";
-import {
-  AppShell as AppShellMantine,
-  ColorScheme,
-  ColorSchemeProvider,
-  MantineProvider,
-} from "@mantine/core";
-import { useHotkeys, useLocalStorage } from "@mantine/hooks";
+import { AppShell as AppShellMantine, createStyles } from "@mantine/core";
 import { Header } from "../Header";
 
 type AppShellProps = {
   children: ReactNode;
 };
 
+const useStyles = createStyles((theme, _params, getRef) => ({
+  main: {
+    backgroundColor:
+      theme.colorScheme === "dark" ? theme.colors.dark[7] : "ghostwhite",
+  },
+}));
+
 export const AppShell = ({ children }: AppShellProps) => {
-  const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
-    key: "mantine-color-scheme",
-    defaultValue: "light",
-    getInitialValueInEffect: true,
-  });
-
-  const toggleColorScheme = (value?: ColorScheme) =>
-    setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
-
-  useHotkeys([["mod+J", () => toggleColorScheme()]]);
+  const { classes } = useStyles();
 
   return (
-    <ColorSchemeProvider
-      colorScheme={colorScheme}
-      toggleColorScheme={toggleColorScheme}
+    <AppShellMantine
+      className={classes.main}
+      header={
+        <Header
+          title=""
+          links={[
+            {
+              link: "/",
+              label: "Home",
+            },
+            {
+              link: "/about",
+              label: "About",
+            },
+          ]}
+        />
+      }
     >
-      <MantineProvider
-        theme={{
-          colorScheme,
-          black: "#46514F",
-        }}
-        withGlobalStyles
-        withNormalizeCSS
-      >
-        <AppShellMantine
-          header={
-            <Header
-              title=""
-              links={[
-                {
-                  link: "/",
-                  label: "Home",
-                },
-                // {
-                //   link: "/about",
-                //   label: "About",
-                // },
-              ]}
-            />
-          }
-        >
-          {children}
-        </AppShellMantine>
-      </MantineProvider>
-    </ColorSchemeProvider>
+      {children}
+    </AppShellMantine>
   );
 };

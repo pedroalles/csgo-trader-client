@@ -1,8 +1,22 @@
-import React, { useCallback } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { Card, Group, Image, Stack, Text } from "@mantine/core";
 import IType from "../../interfaces/IType";
-import { ISale } from "../../interfaces/ISticker";
+import { ISale, ISaleInfos } from "../../interfaces/ISticker";
 import CardItem from "../CardItem/CardItem";
+import useSWR from "swr";
+import axios from "axios";
+import { SWR_STICKER_REFRESH } from "../../constants";
+import CardItemNum from "../CardItemNum/CardItem";
+
+const axiosFetcher = (url: string, body: any = {}) =>
+  axios
+    .get(url, {
+      params: body,
+    })
+    .then((r) => {
+      console.log("GETING SALE", r.data);
+      return r.data;
+    });
 
 interface CardProps {
   data: {
@@ -11,8 +25,21 @@ interface CardProps {
   } & ISale;
 }
 
-export default function SaleCard({
-  data: {
+function SaleCard({ data }: CardProps) {
+  const body = {
+    url: data.link,
+  };
+  const url = "http://192.168.0.21:3001/sale";
+  const { data: saleInfos, error } = useSWR<{ data: ISaleInfos; time: string }>(
+    [url, body],
+    axiosFetcher,
+    {
+      revalidateOnFocus: false,
+      refreshInterval: SWR_STICKER_REFRESH,
+    }
+  );
+
+  const {
     type,
     index,
     name,
@@ -23,31 +50,46 @@ export default function SaleCard({
     image,
     profitPercent,
     profitValue,
-  },
-}: CardProps) {
-  // console.log(`${image.split(" ")[0]}.jpg`);
+  } = data;
 
-  const data: { label: string; value: string }[] = [
-    { label: "Sale Price", value: sellValue },
-    { label: "Buy Price", value: buyValue },
-    { label: "Receive", value: receiveValue },
-    { label: "Profit", value: profitValue },
-    { label: "Profit %", value: profitPercent },
-  ];
+  const items = useCallback(() => {
+    const itemsData: { label: string; value: string }[] = [
+      { label: "Sale Price", value: sellValue },
+      { label: "Buy Price", value: buyValue },
+      { label: "Receive", value: receiveValue },
+      { label: "Profit", value: profitValue },
+      { label: "Profit %", value: profitPercent },
+    ];
 
-  const items = useCallback(
-    () =>
-      data.map((item: { label: string; value: string }, index) => (
-        <CardItem
-          key={`card-item-${type}-${name}-${index}`}
-          data={{
-            label: item.label,
-            value: item.value,
-          }}
-        />
-      )),
-    [data]
-  );
+    return itemsData.map((item: { label: string; value: string }, index) => (
+      <CardItemNum
+        key={`card-item-${type}-${name}-${index}-${item.label}`}
+        data={{
+          label: item.label,
+          value: item.value,
+        }}
+      />
+    ));
+  }, [data]);
+
+  const saleInfosItems = useCallback(() => {
+    if (!saleInfos?.data) return;
+
+    const itemsData: { label: string; value: string }[] = [
+      { label: "Quantity", value: saleInfos?.data.quantity! },
+      { label: "Starting Price", value: saleInfos?.data.startingValue! },
+    ];
+
+    return itemsData.map((item: { label: string; value: string }, index) => (
+      <CardItemNum
+        key={`card-item-${type}-${name}-${index}-${item.label}`}
+        data={{
+          label: item.label,
+          value: item.value,
+        }}
+      />
+    ));
+  }, [saleInfos]);
 
   return (
     <Card key={index} component="a" href={link} target="_blank" withBorder>
@@ -69,22 +111,43 @@ export default function SaleCard({
             justifyContent: "space-between",
           }}
         >
-          {/* Name */}
-          <Stack spacing={1}>
-            <Text
-              style={{
-                fontWeight: 700,
-                fontSize: 16,
-                lineHeight: 1,
-              }}
-            >
-              {name}
-            </Text>
+          <Group position="apart">
+            {/* Name */}
+            <Stack spacing={1}>
+              <Text
+                style={{
+                  fontWeight: 700,
+                  fontSize: 16,
+                  lineHeight: 1,
+                }}
+              >
+                {name}
+              </Text>
 
-            <Text size="xs" color="dimmed">
-              Item Name
-            </Text>
-          </Stack>
+              <Text size="xs" color="dimmed">
+                Item Name
+              </Text>
+            </Stack>
+
+            {/* Update time */}
+            {saleInfos?.time && (
+              <Stack spacing={1}>
+                <Text
+                  style={{
+                    fontWeight: 500,
+                    fontSize: 10,
+                    lineHeight: 1,
+                  }}
+                >
+                  {saleInfos?.time}
+                </Text>
+
+                <Text size="xs" color="dimmed">
+                  Last Update
+                </Text>
+              </Stack>
+            )}
+          </Group>
 
           <Group
             // spacing="xs"
@@ -97,6 +160,7 @@ export default function SaleCard({
             }
           >
             {items()}
+            {saleInfosItems?.()}
           </Group>
         </Stack>
 
@@ -126,3 +190,5 @@ export default function SaleCard({
     </Card>
   );
 }
+
+export default SaleCard;
