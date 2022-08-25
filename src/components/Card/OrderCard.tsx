@@ -8,6 +8,7 @@ import useSWR from "swr";
 import axios from "axios";
 import { SWR_STICKER_REFRESH } from "../../constants";
 import CardItemNum from "../CardItemNum/CardItem";
+import TableAccordion from "../Accordion/Accordion";
 
 const axiosFetcher = (url: string, body: any = {}) =>
   axios
@@ -80,7 +81,13 @@ function OrderCard({ data }: CardProps) {
   }, [orderInfos]);
 
   return (
-    <Card key={index} component="a" href={link} target="_blank" withBorder>
+    <Card
+      key={index}
+      // component="a"
+      // href={link}
+      // target="_blank"
+      withBorder
+    >
       <Group
         position="apart"
         // grow
@@ -96,13 +103,16 @@ function OrderCard({ data }: CardProps) {
             width: "60%",
             height: "100%",
             display: "flex",
-            justifyContent: "space-between",
+            // justifyContent: "space-between",
           }}
         >
           <Group position="apart">
             {/* Name */}
             <Stack spacing={1}>
               <Text
+                component="a"
+                href={link}
+                target="_blank"
                 style={{
                   fontWeight: 700,
                   fontSize: 16,
@@ -150,6 +160,24 @@ function OrderCard({ data }: CardProps) {
             {items()}
             {orderInfosItems?.()}
           </Group>
+
+          {orderInfos?.data.table && (
+            <Group
+              grow
+              spacing="xs"
+              align="flex-start"
+              position="left"
+              style={
+                {
+                  // backgroundColor: "red",
+                }
+              }
+            >
+              <TableAccordion
+                data={{ title: "Table", table: orderInfos?.data.table! }}
+              />
+            </Group>
+          )}
         </Stack>
 
         <Stack

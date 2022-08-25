@@ -133,7 +133,7 @@ export default function Home() {
             />
           </Stack>
 
-          {index < data.length - 1 && <Divider my="xs" variant="solid" />}
+          {index < 2 && <Divider my="xs" variant="solid" />}
         </Fragment>
       ))}
     </Container>

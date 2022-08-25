@@ -7,6 +7,7 @@ import axios from "axios";
 import useSWR from "swr";
 import { SWR_STICKER_REFRESH } from "../../constants";
 import CardItemNum from "../CardItemNum/CardItem";
+import TableAccordion from "../Accordion/Accordion";
 
 const axiosFetcher = (url: string, body: any = {}) =>
   axios
@@ -88,7 +89,13 @@ export default function MonitoringCard({ data }: CardProps) {
   }, [monitoringInfos]);
 
   return (
-    <Card key={index} component="a" href={link} target="_blank" withBorder>
+    <Card
+      key={index}
+      // component="a"
+      // href={link}
+      // target="_blank"
+      withBorder
+    >
       <Group
         position="apart"
         // grow
@@ -104,13 +111,16 @@ export default function MonitoringCard({ data }: CardProps) {
             width: "60%",
             height: "100%",
             display: "flex",
-            justifyContent: "space-between",
+            // justifyContent: "space-between",
           }}
         >
           <Group position="apart">
             {/* Name */}
             <Stack spacing={1}>
               <Text
+                component="a"
+                href={link}
+                target="_blank"
                 style={{
                   fontWeight: 700,
                   fontSize: 16,
@@ -158,6 +168,33 @@ export default function MonitoringCard({ data }: CardProps) {
             {/* {items()} */}
             {monitoringInfosItems?.()}
           </Group>
+
+          {monitoringInfos?.data && (
+            <Group
+              grow
+              spacing="xs"
+              align="flex-start"
+              position="left"
+              style={
+                {
+                  // backgroundColor: "red",
+                }
+              }
+            >
+              <TableAccordion
+                data={{
+                  title: "Sale Table",
+                  table: monitoringInfos?.data.saleTable!,
+                }}
+              />
+              <TableAccordion
+                data={{
+                  title: "Order Table",
+                  table: monitoringInfos?.data.orderTable!,
+                }}
+              />
+            </Group>
+          )}
         </Stack>
 
         <Stack
