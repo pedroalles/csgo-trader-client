@@ -35,3 +35,12 @@ export interface IOrderInfos {
   startingValue: string;
   table: { value: string; quantity: string }[];
 }
+
+export interface IMonitoringInfos {
+  saleQuantity: string;
+  saleStartingValue: string;
+  orderQuantity: string;
+  orderStartingValue: string;
+  saleTable: { value: string; quantity: string }[];
+  orderTable: { value: string; quantity: string }[];
+}

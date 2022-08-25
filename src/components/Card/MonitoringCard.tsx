@@ -1,8 +1,22 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Card, Group, Image, Stack, Text } from "@mantine/core";
 import { Sticker } from "../../hooks/useAll";
 import IType from "../../interfaces/IType";
-import { IMonitoring } from "../../interfaces/ISticker";
+import { IMonitoring, IMonitoringInfos } from "../../interfaces/ISticker";
+import axios from "axios";
+import useSWR from "swr";
+import { SWR_STICKER_REFRESH } from "../../constants";
+import CardItemNum from "../CardItemNum/CardItem";
+
+const axiosFetcher = (url: string, body: any = {}) =>
+  axios
+    .get(url, {
+      params: body,
+    })
+    .then((r) => {
+      console.log("GETING MONITORING INFO DATA", r.data);
+      return r.data;
+    });
 
 interface CardProps {
   data: {
@@ -15,10 +29,63 @@ const valuesBuy = ["R$ 15,00", "R$ 23,00", "R$ 82,00"];
 
 const valuesSell = ["R$ 1,00", "R$ 1,20", "R$ 0,98"];
 
-export default function MonitoringCard({
-  data: { type, index, name, buyValue, link, image },
-}: CardProps) {
-  // console.log(`${image.split(" ")[0]}.jpg`);
+export default function MonitoringCard({ data }: CardProps) {
+  const body = {
+    url: data.link,
+  };
+  const url = "http://192.168.0.21:3001/monitoring/info";
+  const { data: monitoringInfos, error } = useSWR<{
+    data: IMonitoringInfos;
+    time: string;
+  }>([url, body], axiosFetcher, {
+    revalidateOnFocus: false,
+    refreshInterval: SWR_STICKER_REFRESH,
+  });
+  const { type, index, name, buyValue, link, image } = data;
+
+  // const items = useCallback(() => {
+  //   const itemsData: { label: string; value: string }[] = [
+  //     // { label: "Order Price", value: buyValue },
+  //     // { label: " Market Price", value: marketPrice[index] },
+  //   ];
+
+  //   return itemsData.map((item: { label: string; value: string }, index) => (
+  //     <CardItemNum
+  //       key={`card-item-${type}-${name}-${index}-${item.label}`}
+  //       data={{
+  //         label: item.label,
+  //         value: item.value,
+  //       }}
+  //     />
+  //   ));
+  // }, [data]);
+
+  const monitoringInfosItems = useCallback(() => {
+    if (!monitoringInfos?.data) return;
+
+    const itemsData: { label: string; value: string }[] = [
+      { label: "Sale Qtty", value: monitoringInfos?.data.saleQuantity! },
+      {
+        label: "Sale 1º Price",
+        value: monitoringInfos?.data.saleStartingValue!,
+      },
+      { label: "Order Qtty", value: monitoringInfos?.data.orderQuantity! },
+      {
+        label: "Order 1º Price",
+        value: monitoringInfos?.data.orderStartingValue!,
+      },
+    ];
+
+    return itemsData.map((item: { label: string; value: string }, index) => (
+      <CardItemNum
+        key={`card-item-${type}-${name}-${index}-${item.label}`}
+        data={{
+          label: item.label,
+          value: item.value,
+        }}
+      />
+    ));
+  }, [monitoringInfos]);
 
   return (
     <Card key={index} component="a" href={link} target="_blank" withBorder>
@@ -40,22 +107,43 @@ export default function MonitoringCard({
             justifyContent: "space-between",
           }}
         >
-          {/* Name */}
-          <Stack spacing={1}>
-            <Text
-              style={{
-                fontWeight: 700,
-                fontSize: 16,
-                lineHeight: 1,
-              }}
-            >
-              {name}
-            </Text>
+          <Group position="apart">
+            {/* Name */}
+            <Stack spacing={1}>
+              <Text
+                style={{
+                  fontWeight: 700,
+                  fontSize: 16,
+                  lineHeight: 1,
+                }}
+              >
+                {name}
+              </Text>
 
-            <Text size="xs" color="dimmed">
-              Item Name
-            </Text>
-          </Stack>
+              <Text size="xs" color="dimmed">
+                Item Name
+              </Text>
+            </Stack>
+
+            {/* Update time */}
+            {monitoringInfos?.time && (
+              <Stack spacing={1}>
+                <Text
+                  style={{
+                    fontWeight: 500,
+                    fontSize: 10,
+                    lineHeight: 1,
+                  }}
+                >
+                  {monitoringInfos?.time}
+                </Text>
+
+                <Text size="xs" color="dimmed">
+                  Last Update
+                </Text>
+              </Stack>
+            )}
+          </Group>
 
           <Group
             // spacing="xs"
@@ -68,6 +156,7 @@ export default function MonitoringCard({
             }
           >
             {/* {items()} */}
+            {monitoringInfosItems?.()}
           </Group>
         </Stack>
 
