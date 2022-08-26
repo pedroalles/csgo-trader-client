@@ -163,10 +163,10 @@ function OrderCard({ data }: CardProps) {
 
           {orderInfos?.data.table && (
             <Group
-              grow
-              spacing="xs"
-              align="flex-start"
-              position="left"
+              // grow
+              // spacing="xs"
+              align="self-start"
+              position="apart"
               style={
                 {
                   // backgroundColor: "red",

@@ -171,10 +171,10 @@ export default function MonitoringCard({ data }: CardProps) {
 
           {monitoringInfos?.data && (
             <Group
-              grow
-              spacing="xs"
-              align="flex-start"
-              position="left"
+              // grow
+              // spacing="xs"
+              align="self-start"
+              position="apart"
               style={
                 {
                   // backgroundColor: "red",
