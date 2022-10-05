@@ -1,9 +1,8 @@
 import useSWR from "swr";
 import axios from "axios";
-import { IMonitoring, IOrder, ISale } from "../interfaces/ISticker";
 import { SWR_ALL_REFRESH } from "../constants";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+// import { useAppDispatch, useAppSelector } from "../redux/store";
+import IItems from "../interfaces/IItems";
 
 const axiosFetcher = (url: string) =>
   axios.get(url).then((r) => {
@@ -11,22 +10,20 @@ const axiosFetcher = (url: string) =>
     return r.data;
   });
 
-export interface Sticker {
-  name: string;
-  value: string;
-  link: string;
-  image: string;
+type ActionToDispatch = (data?: any) => { type: string; payload?: any };
+
+interface useAllProps {
+  actionsToPersist?: ActionToDispatch[];
 }
 
-export interface All {
-  sales: ISale[];
-  orders: IOrder[];
-  monitoring: IMonitoring[];
-}
-
-export default function useAll() {
+export default function useAll({ actionsToPersist = [] }: useAllProps) {
   const url = "http://192.168.0.21:3001/all";
-  const { data, error } = useSWR<{ data: All; time: string }>(
+
+  // const items = useAppSelector(selectItems);
+
+  // const dispatch = useAppDispatch();
+
+  const { data, error, isValidating } = useSWR<{ data: IItems; time: string }>(
     url,
     axiosFetcher,
     {
@@ -34,6 +31,13 @@ export default function useAll() {
       refreshInterval: SWR_ALL_REFRESH,
     }
   );
+
+  if (actionsToPersist.length && !isValidating) {
+    actionsToPersist.forEach((action) => {
+      // dispatch(action(data?.data));
+    });
+  }
+
   return {
     all: data?.data,
     time: data?.time,

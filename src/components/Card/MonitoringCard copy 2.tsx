@@ -1,14 +1,13 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import { Card, Group, Image, Stack, Text } from "@mantine/core";
+import { Sticker } from "../../hooks/useAll";
 import IType from "../../interfaces/IType";
-import { ISale, ISaleInfos } from "../../interfaces/ISticker";
-import CardItem from "../CardItem/CardItem";
-import useSWR from "swr";
+import { IMonitoring, IMonitoringInfos } from "../../interfaces/ISticker";
 import axios from "axios";
+import useSWR from "swr";
 import { SWR_STICKER_REFRESH } from "../../constants";
 import CardItemNum from "../CardItemNum/CardItem";
 import TableAccordion from "../Accordion/Accordion";
-import { itemsApi } from "../../redux/store";
 
 const axiosFetcher = (url: string, body: any = {}) =>
   axios
@@ -16,7 +15,7 @@ const axiosFetcher = (url: string, body: any = {}) =>
       params: body,
     })
     .then((r) => {
-      console.log("GETING SALE", r.data);
+      console.log("GETING MONITORING INFO DATA", r.data);
       return r.data;
     });
 
@@ -24,48 +23,58 @@ interface CardProps {
   data: {
     type: IType;
     index: number;
-  } & ISale;
+  } & IMonitoring;
 }
 
-function SaleCard({ data }: CardProps) {
-  // const body = {
-  //   url: data.link,
-  // };
-  // const url = "http://192.168.0.21:3001/sale";
-  // const { data: saleInfos, error } = useSWR<{ data: ISaleInfos; time: string }>(
-  //   [url, body],
-  //   axiosFetcher,
-  //   {
-  //     revalidateOnFocus: false,
-  //     refreshInterval: SWR_STICKER_REFRESH,
-  //   }
-  // );
+const valuesBuy = ["R$ 15,00", "R$ 23,00", "R$ 82,00"];
 
-  const { data: saleInfos } = itemsApi.useGetSaleInfoByUrlQuery(data.link, {
-    pollingInterval: 90_000,
-    refetchOnMountOrArgChange: true,
+const valuesSell = ["R$ 1,00", "R$ 1,20", "R$ 0,98"];
+
+export default function MonitoringCard({ data }: CardProps) {
+  const body = {
+    url: data.link,
+  };
+  const url = "http://192.168.0.21:3001/monitoring/info";
+  const { data: monitoringInfos, error } = useSWR<{
+    data: IMonitoringInfos;
+    time: string;
+  }>([url, body], axiosFetcher, {
+    revalidateOnFocus: false,
+    refreshInterval: SWR_STICKER_REFRESH,
   });
+  const { type, index, name, buyValue, link, image } = data;
 
-  const {
-    type,
-    index,
-    name,
-    sellValue,
-    buyValue,
-    receiveValue,
-    link,
-    image,
-    profitPercent,
-    profitValue,
-  } = data;
+  // const items = useCallback(() => {
+  //   const itemsData: { label: string; value: string }[] = [
+  //     // { label: "Order Price", value: buyValue },
+  //     // { label: " Market Price", value: marketPrice[index] },
+  //   ];
 
-  const items = useCallback(() => {
+  //   return itemsData.map((item: { label: string; value: string }, index) => (
+  //     <CardItemNum
+  //       key={`card-item-${type}-${name}-${index}-${item.label}`}
+  //       data={{
+  //         label: item.label,
+  //         value: item.value,
+  //       }}
+  //     />
+  //   ));
+  // }, [data]);
+
+  const monitoringInfosItems = useCallback(() => {
+    if (!monitoringInfos?.data) return;
+
     const itemsData: { label: string; value: string }[] = [
-      { label: "Sale Price", value: sellValue },
-      { label: "Buy Price", value: buyValue },
-      { label: "Receive", value: receiveValue },
-      { label: "Profit", value: profitValue },
-      { label: "Profit %", value: profitPercent },
+      { label: "Sale Qtty", value: monitoringInfos?.data.saleQuantity! },
+      {
+        label: "Sale 1º Price",
+        value: monitoringInfos?.data.saleStartingValue!,
+      },
+      { label: "Order Qtty", value: monitoringInfos?.data.orderQuantity! },
+      {
+        label: "Order 1º Price",
+        value: monitoringInfos?.data.orderStartingValue!,
+      },
     ];
 
     return itemsData.map((item: { label: string; value: string }, index) => (
@@ -77,26 +86,7 @@ function SaleCard({ data }: CardProps) {
         }}
       />
     ));
-  }, [data]);
-
-  const saleInfosItems = useCallback(() => {
-    if (!saleInfos?.data) return;
-
-    const itemsData: { label: string; value: string }[] = [
-      { label: "Quantity", value: saleInfos?.data.quantity! },
-      { label: "Starting Price", value: saleInfos?.data.startingValue! },
-    ];
-
-    return itemsData.map((item: { label: string; value: string }, index) => (
-      <CardItemNum
-        key={`card-item-${type}-${name}-${index}-${item.label}`}
-        data={{
-          label: item.label,
-          value: item.value,
-        }}
-      />
-    ));
-  }, [saleInfos]);
+  }, [monitoringInfos]);
 
   return (
     <Card
@@ -105,12 +95,10 @@ function SaleCard({ data }: CardProps) {
       // href={link}
       // target="_blank"
       withBorder
-      style={{
-        position: "relative",
-      }}
     >
       <Group
         position="apart"
+        spacing={0}
         // grow
         style={{
           // backgroundColor: "yellow",
@@ -121,7 +109,7 @@ function SaleCard({ data }: CardProps) {
         <Stack
           style={{
             // backgroundColor: "green",
-            width: "60%",
+            width: "75%",
             height: "100%",
             display: "flex",
             // justifyContent: "space-between",
@@ -149,7 +137,7 @@ function SaleCard({ data }: CardProps) {
             </Stack>
 
             {/* Update time */}
-            {saleInfos?.time && (
+            {monitoringInfos?.time && (
               <Stack spacing={1}>
                 <Text
                   style={{
@@ -158,7 +146,7 @@ function SaleCard({ data }: CardProps) {
                     lineHeight: 1,
                   }}
                 >
-                  {saleInfos?.time}
+                  {monitoringInfos?.time}
                 </Text>
 
                 <Text size="xs" color="dimmed">
@@ -178,11 +166,11 @@ function SaleCard({ data }: CardProps) {
               }
             }
           >
-            {items()}
-            {saleInfosItems?.()}
+            {/* {items()} */}
+            {monitoringInfosItems?.()}
           </Group>
 
-          {saleInfos?.data?.table && (
+          {monitoringInfos?.data && (
             <Group
               // grow
               // spacing="xs"
@@ -195,7 +183,16 @@ function SaleCard({ data }: CardProps) {
               }
             >
               <TableAccordion
-                data={{ title: "Table", table: saleInfos?.data.table! }}
+                data={{
+                  title: "Sale Table",
+                  table: monitoringInfos?.data.saleTable!,
+                }}
+              />
+              <TableAccordion
+                data={{
+                  title: "Order Table",
+                  table: monitoringInfos?.data.orderTable!,
+                }}
               />
             </Group>
           )}
@@ -206,10 +203,9 @@ function SaleCard({ data }: CardProps) {
             // backgroundColor: "blue",
             display: "flex",
             justifyContent: "center",
-            // alignItems: "center",
-            alignItems: "flex-end",
+            alignItems: "end",
             height: "100%",
-            width: "30%",
+            width: "25%",
           }}
         >
           <Image
@@ -227,5 +223,3 @@ function SaleCard({ data }: CardProps) {
     </Card>
   );
 }
-
-export default SaleCard;

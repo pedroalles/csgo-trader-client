@@ -1,6 +1,5 @@
 import React, { useCallback } from "react";
 import { Card, Group, Image, Stack, Text } from "@mantine/core";
-import { Sticker } from "../../hooks/useAll";
 import IType from "../../interfaces/IType";
 import { IMonitoring, IMonitoringInfos } from "../../interfaces/ISticker";
 import axios from "axios";
@@ -8,6 +7,8 @@ import useSWR from "swr";
 import { SWR_STICKER_REFRESH } from "../../constants";
 import CardItemNum from "../CardItemNum/CardItem";
 import TableAccordion from "../Accordion/Accordion";
+import CancelButton from "../Buttons/Cancel/CancelButton";
+import { itemsApi } from "../../redux/store";
 
 const axiosFetcher = (url: string, body: any = {}) =>
   axios
@@ -26,22 +27,32 @@ interface CardProps {
   } & IMonitoring;
 }
 
-const valuesBuy = ["R$ 15,00", "R$ 23,00", "R$ 82,00"];
+// const valuesBuy = ["R$ 15,00", "R$ 23,00", "R$ 82,00"];
 
-const valuesSell = ["R$ 1,00", "R$ 1,20", "R$ 0,98"];
+// const valuesSell = ["R$ 1,00", "R$ 1,20", "R$ 0,98"];
 
 export default function MonitoringCard({ data }: CardProps) {
-  const body = {
-    url: data.link,
-  };
-  const url = "http://192.168.0.21:3001/monitoring/info";
-  const { data: monitoringInfos, error } = useSWR<{
-    data: IMonitoringInfos;
-    time: string;
-  }>([url, body], axiosFetcher, {
-    revalidateOnFocus: false,
-    refreshInterval: SWR_STICKER_REFRESH,
-  });
+  // const body = {
+  //   url: data.link,
+  // };
+
+  const { data: monitoringInfos } = itemsApi.useGetMonitoringInfoByUrlQuery(
+    data.link,
+    {
+      pollingInterval: 90_000,
+      refetchOnMountOrArgChange: true,
+    }
+  );
+
+  // const url = "http://192.168.0.21:3001/monitoring/info";
+  // const { data: monitoringInfos, error } = useSWR<{
+  //   data: IMonitoringInfos;
+  //   time: string;
+  // }>([url, body], axiosFetcher, {
+  //   revalidateOnFocus: false,
+  //   refreshInterval: SWR_STICKER_REFRESH,
+  // });
+
   const { type, index, name, buyValue, link, image } = data;
 
   // const items = useCallback(() => {
@@ -218,6 +229,10 @@ export default function MonitoringCard({ data }: CardProps) {
               }
             }
           />
+
+          <Group>
+            <CancelButton type={type} url={link} />
+          </Group>
         </Stack>
       </Group>
     </Card>

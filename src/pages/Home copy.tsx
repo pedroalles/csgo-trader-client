@@ -17,8 +17,6 @@ import Grid from "../components/Grid/Grid";
 import IType from "../interfaces/IType";
 import { IMonitoring, IOrder, ISale } from "../interfaces/ISticker";
 import { set } from "../redux/features/items/itemsSlice";
-import { itemsApi } from "../redux/store";
-import { skipToken } from "@reduxjs/toolkit/dist/query";
 
 interface StickerStackProps {
   type: IType;
@@ -27,16 +25,10 @@ interface StickerStackProps {
 
 export default function Home() {
   const theme = useMantineTheme();
-
-  // const { all, error } = useAll({ actionsToPersist: [set] });
-
-  const { data } = itemsApi.useGetAllQuery(undefined, {
-    pollingInterval: 60_000,
-    refetchOnMountOrArgChange: true,
-  });
+  const { all, error } = useAll({ actionsToPersist: [set] });
 
   // if (!!both === true)
-  if (!data)
+  if (!all)
     return (
       <Container
         fluid
@@ -104,23 +96,20 @@ export default function Home() {
       </Container>
     );
 
-  const itemsData: StickerStackProps[] = [
+  const data: StickerStackProps[] = [
     {
       type: "Sales",
-      data: data.data.sales,
+      data: all!.sales,
     },
     {
       type: "Orders",
-      data: data.data.orders,
+      data: all!.orders,
     },
     {
       type: "Monitoring",
-      data: data.data.monitoring,
+      data: all!.monitoring,
     },
   ];
-
-  // console.log("all", data.data);
-  // console.log("data", itemsData);
 
   return (
     <Container
@@ -132,7 +121,7 @@ export default function Home() {
         // backgroundColor: "red",
       }}
     >
-      {itemsData.map(({ type, data }, index) => (
+      {data.map(({ type, data }, index) => (
         <Fragment key={type}>
           <Stack key={type} spacing="xs">
             <Title order={4}>{type}</Title>

@@ -65,6 +65,10 @@ export default function TableAccordion({ data }: TableAccordionProps) {
             transform: "rotate(-90deg)",
           },
         },
+
+        content: {
+          padding: 0,
+        },
       }}
     >
       <Accordion.Item value="item">

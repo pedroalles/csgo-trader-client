@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { AppShell } from "./components/AppShell";
 import Home from "./pages/Home";
+import About from "./pages/About";
 
 export default function App() {
   const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
@@ -39,7 +40,7 @@ export default function App() {
           <AppShell>
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/about" element={<h1>About</h1>} />
+              <Route path="/about" element={<About />} />
             </Routes>
           </AppShell>
         </BrowserRouter>
